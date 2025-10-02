@@ -1,4 +1,4 @@
-package rnd.fahim.java21springboot3devops;
+package rnd.dibaroy.java21springboot3devops;
 
 import static org.hamcrest.Matchers.startsWith;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;

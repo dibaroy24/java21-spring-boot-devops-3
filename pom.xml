@@ -8,7 +8,7 @@
         <version>3.5.4</version>
         <relativePath/>
     </parent>
-    <groupId>rnd.fahim</groupId>
+    <groupId>rnd.dibaroy</groupId>
     <artifactId>java-21-spring-boot-3-devops</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>java-21-spring-boot-3-devops</name>

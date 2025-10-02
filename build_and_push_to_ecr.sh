@@ -5,7 +5,7 @@ docker_file=Dockerfile-liberica-multi-stage
 image_name=demo-app-liberica-multi-stage
 aws_account_id=<account-id>
 aws_region=ap-southeast-1
-aws_ecr_repository_name=fahim/demo-app-liberica
+aws_ecr_repository_name=dibaroy/demo-app-liberica
 
 echo 'Starting docker build'
 docker build . -t $image_name -f  $docker_file

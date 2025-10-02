@@ -1,3 +1,3 @@
-package rnd.fahim.java21springboot3devops;
+package rnd.dibaroy.java21springboot3devops;
 
 public record ResponseDto(String message) {}

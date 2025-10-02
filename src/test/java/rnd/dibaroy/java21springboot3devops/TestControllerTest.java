@@ -1,4 +1,4 @@
-package rnd.fahim.java21springboot3devops;
+package rnd.dibaroy.java21springboot3devops;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
