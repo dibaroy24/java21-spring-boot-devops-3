@@ -1,0 +1,76 @@
+name: Deploy to Amazon ECS
+
+on:
+  push:
+    branches: [ "master" ]
+
+concurrency:
+  group: ecs-deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  AWS_REGION: us-east-1                                                                      # set this to your preferred AWS region
+  ECR_REPOSITORY: demo-app                                                                   # set this to your Amazon ECR repository name
+  ECS_SERVICE: demo-app-cluster                                                              # set this to your Amazon ECS service name
+  ECS_CLUSTER: demo-app-service                                                              # set this to your Amazon ECS cluster name
+  DOCKER_FILE: Dockerfile-liberica-multi-stage                                               # set this to the path to your Dockerfile
+  IAM_ROLE: arn:aws:iam::638224466109:role/github_actions_trusted_web_identity_role          # set this to the arn of the OIDC Role
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    environment: dev
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Configure AWS credentials via OIDC
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: ${{ env.IAM_ROLE }}
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v2
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Build Docker image
+      uses: docker/build-push-action@v6
+      with:
+        context: .
+        file: ${{ env.DOCKER_FILE }}
+        push: false
+        load: true
+        tags: |
+          ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPO }}:${{ github.sha }}
+          ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPO }}:latest
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+    - name: Push Docker image (SHA)
+      run: docker push ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPO }}:${{ github.sha }}
+
+    - name: Push Docker image (latest)
+      run: docker push ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPO }}:latest
+
+    - name: Deploy to Amazon ECS
+      run: |
+        aws ecs update-service \
+            --cluster ${{ env.ECS_CLUSTER }} \
+            --service ${{ env.ECS_SERVICE }} \
+            --force-new-deployment
+
+    - name: Wait for ECS service stability
+      run: |
+        aws ecs wait services-stable \
+            --cluster ${{ env.ECS_CLUSTER }} \
+            --service ${{ env.ECS_SERVICE }}
